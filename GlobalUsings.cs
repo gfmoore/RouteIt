@@ -1,0 +1,15 @@
+﻿global using RouteIt.ViewModels;
+global using CommunityToolkit.Mvvm.ComponentModel;
+global using CommunityToolkit.Mvvm.Input;
+global using System.Diagnostics;
+global using Mapsui;
+global using Mapsui.Extensions;
+global using Mapsui.Tiling;
+global using Mapsui.UI;
+global using Mapsui.Projections;
+global using Mapsui.Widgets;
+global using Mapsui.Widgets.ScaleBar;
+global using Mapsui.Widgets.Zoom;
+global using Mapsui.Styles;
+global using HorizontalAlignment = Mapsui.Widgets.HorizontalAlignment;
+global using VerticalAlignment = Mapsui.Widgets.VerticalAlignment;
