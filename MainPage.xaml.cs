@@ -1,6 +1,5 @@
-﻿using Mapsui.Layers;
-using Mapsui.Nts;
-using Mapsui.UI.Maui;
+﻿using Mapsui.UI.Maui;
+using Location = Microsoft.Maui.Devices.Sensors.Location;
 
 namespace RouteIt;
 
@@ -35,34 +34,35 @@ public partial class MainPage : ContentPage
       
       var mapControl = new Mapsui.UI.Maui.MapControl();
       var map = mapControl.Map;
-
-      map.BackColor = Mapsui.Styles.Color.Black;
+      var viewPort = mapControl.Viewport;
+      //map.BackColor = Mapsui.Styles.Color.Black;
 
       map?.Layers.Add(Mapsui.Tiling.OpenStreetMap.CreateTileLayer());
       
       map.Widgets.Add(new ScaleBarWidget(map));
       map.Widgets.Add(new ZoomInOutWidget { MarginX = 10, MarginY = 20 });  //adds the +/- zoom widget
 
-
-
       map.Home = n => n.NavigateTo(new MPoint(smc.x, smc.y), map.Resolutions[16]);  //0 zoomed out-19 zoomed in
+
       IsBusy = false;
 
-      var layer = new GenericCollectionLayer<List<IFeature>>
+      //add a pin
+      MPoint pt = new();
+      pt.X = smc.x;
+      pt.Y = smc.y;
+
+      var myPin = new Pin(mapView) //Exception here
       {
-        Style = SymbolStyles.CreatePinStyle()
+        Position = new Position(location.Latitude, location.Longitude),
+        Type = PinType.Pin,
+        Label = "Zero point",
+        Address = "Zero point",
       };
-      map.Layers.Add(layer);
+      mapView.Pins.Add(myPin);
 
-      layer?.Features.Add(new GeometryFeature
-      {
+      mapView.Map = map;
 
-      });
 
-      layer?.DataHasChanged();
-
-      //Add to my xaml
-      MapDisplay.Content = mapControl;
 
     }
     catch (Exception e)
