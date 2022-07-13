@@ -47,22 +47,18 @@ public partial class MainPage : ContentPage
       IsBusy = false;
 
       //add a pin
-      MPoint pt = new();
-      pt.X = smc.x;
-      pt.Y = smc.y;
-
-      var myPin = new Pin(mapView) //Exception here
+      var myPin = new Pin(mapView)
       {
         Position = new Position(location.Latitude, location.Longitude),
         Type = PinType.Pin,
         Label = "Zero point",
         Address = "Zero point",
+        Scale = 0.7F,
+        Color = Colors.Blue,
       };
       mapView.Pins.Add(myPin);
 
       mapView.Map = map;
-
-
 
     }
     catch (Exception e)
