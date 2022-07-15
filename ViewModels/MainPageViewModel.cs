@@ -19,7 +19,16 @@ public partial class MainPageViewModel : ObservableObject
   private string route;
 
   [ObservableProperty]
-  private bool findRouteEnabled; 
+  private bool findRouteEnabled;
+
+  [ObservableProperty]
+  private string mapItemsLabel = "Map Items";
+
+  [ObservableProperty]
+  private string findRouteLabel = "Find Route";
+
+  public bool clearMap = false;   //for controlling the map or clear map button
+  public bool clearRoute = false; //for controlling the route it or clear route
 
   public void AddTestPostcodes()
   {
@@ -39,109 +48,142 @@ public partial class MainPageViewModel : ObservableObject
   [RelayCommand]
   public async void MapItems()
   {
-    Debug.WriteLine("Map items");
-    HttpClient _client = new();
-    string baseURI = "https://api.postcodes.io/postcodes/";
-
-    List<string> postcodes = new();
-    postcodes.Add(StartPostcode);
-    postcodes.AddRange(Postcodes.Split("\r\n", StringSplitOptions.None));
-    
-    postcodeCoordinates = new();
-    
-    foreach(string postcode in postcodes)
+    if (!clearMap)
     {
+      Debug.WriteLine("Map items");
+      clearMap = true;
+      MapItemsLabel = "Clear Map";
 
-      Uri uri = new(baseURI + postcode);
-      try
+      HttpClient _client = new();
+      string baseURI = "https://api.postcodes.io/postcodes/";
+
+      List<string> postcodes = new();
+      postcodes.Add(StartPostcode);
+      postcodes.AddRange(Postcodes.Split("\r\n", StringSplitOptions.None));
+
+      postcodeCoordinates = new();
+
+      foreach (string postcode in postcodes)
       {
-        HttpResponseMessage response = await _client.GetAsync(uri);
-        if (response.IsSuccessStatusCode)
-        {
-          string content = await response.Content.ReadAsStringAsync();
 
-          PostcodeObject pc = JsonSerializer.Deserialize<PostcodeObject>(content);
-          PostcodePosition pcp = new()
+        Uri uri = new(baseURI + postcode);
+        try
+        {
+          HttpResponseMessage response = await _client.GetAsync(uri);
+          if (response.IsSuccessStatusCode)
           {
-            Postcode = pc.result.postcode,
-            Latitude = pc.result.latitude,
-            Longitude = pc.result.longitude
-          };
-          postcodeCoordinates.Add(pcp);
-          //Debug.WriteLine($"Latitude: {pc.result.latitude} Longitude: {pc.result.longitude}");
+            string content = await response.Content.ReadAsStringAsync();
+
+            PostcodeObject pc = JsonSerializer.Deserialize<PostcodeObject>(content);
+            PostcodePosition pcp = new()
+            {
+              Postcode = pc.result.postcode,
+              Latitude = pc.result.latitude,
+              Longitude = pc.result.longitude
+            };
+            postcodeCoordinates.Add(pcp);
+            //Debug.WriteLine($"Latitude: {pc.result.latitude} Longitude: {pc.result.longitude}");
+          }
+        }
+        catch (Exception e)
+        {
+          Debug.WriteLine($"RouteIt: {e.Message}");
         }
       }
-      catch (Exception e)
-      {
-        Debug.WriteLine($"RouteIt: {e.Message}");
-      }
-    }
-    FindRouteEnabled = true;
+      FindRouteEnabled = true;
 
-    //add pins by sending a message to the code behind where map is definded
-    MessagingCenter.Send(new MessagingMarker(), "PinAdded", postcodeCoordinates);
+      //add pins by sending a message to the code behind where map is definded
+      MessagingCenter.Send(new MessagingMarker(), "PinAdded", postcodeCoordinates);
+
+    }
+    else
+    {
+      MapItemsLabel = "Map Items";
+      clearMap = false;
+
+      //recentre map on my home pos
+      MessagingCenter.Send(new MessagingMarker(), "ClearMap", postcodeCoordinates);
+    }
   }
+
+  public PostcodePosition[] shortestRoute;
 
   [RelayCommand]
   public void FindRoute()
   {
-    Debug.WriteLine("Find route");
-    if (postcodeCoordinates == null) return;  //need to map it
-    //clear the route list
-    Route = "";
-
-    //ok so let's start at StartPostcode and find the distance to all Postcodes
-    //convert postcodeCordinates to an array
-    double shortestDistance = 999999;
-    int shortesti = 0;
-    double distance;
-    //the starting array and the shortest route array
-    PostcodePosition[] postcodePositions = postcodeCoordinates.ToArray();
-    PostcodePosition[] shortestRoute = new PostcodePosition[postcodePositions.Length];
-    shortestRoute[0] = postcodePositions[0];
-    int j = 1;
-
-    while (postcodePositions.Length > 2)
+    if (!clearRoute)
     {
-      shortestDistance = 999999;
-      shortesti = 0;
-      for (int i=1; i < postcodePositions.Length; i++)
-      {
-        distance = CrowFliesDistance(postcodePositions[0], postcodePositions[i]);
-        if (distance < shortestDistance)
-        {
-          shortestDistance = distance;
-          shortesti = i;
-        }
-      }
-      shortestRoute[j] = postcodePositions[shortesti];
-      j += 1;
+      Debug.WriteLine("Find route");
+      FindRouteLabel = "Clear Route";
+      clearRoute = true;
+      
+      if (postcodeCoordinates == null) return;  //need to map it
+      //clear the route list
+      Route = "";
 
-      //now need to create a new array with this as starting point and not the first element
-      PostcodePosition[] newPostcodePositions = new PostcodePosition[postcodePositions.Length - 1];
-      newPostcodePositions[0] = postcodePositions[shortesti];
-      for (int i=1; i < postcodePositions.Length; i++)
+      //ok so let's start at StartPostcode and find the distance to all Postcodes
+      //convert postcodeCordinates to an array
+      double shortestDistance = 999999;
+      int shortesti = 0;
+      double distance;
+      //the starting array and the shortest route array
+      PostcodePosition[] postcodePositions = postcodeCoordinates.ToArray();
+      shortestRoute = new PostcodePosition[postcodePositions.Length];
+      shortestRoute[0] = postcodePositions[0];
+      int j = 1;
+
+      while (postcodePositions.Length > 2)
       {
-        if (i < shortesti)
+        shortestDistance = 999999;
+        shortesti = 0;
+        for (int i = 1; i < postcodePositions.Length; i++)
         {
-          newPostcodePositions[i] = postcodePositions[i];
+          distance = CrowFliesDistance(postcodePositions[0], postcodePositions[i]);
+          if (distance < shortestDistance)
+          {
+            shortestDistance = distance;
+            shortesti = i;
+          }
         }
-        if (i > shortesti)
+        shortestRoute[j] = postcodePositions[shortesti];
+        j += 1;
+
+        //now need to create a new array with this as starting point and not the first element
+        PostcodePosition[] newPostcodePositions = new PostcodePosition[postcodePositions.Length - 1];
+        newPostcodePositions[0] = postcodePositions[shortesti];
+        for (int i = 1; i < postcodePositions.Length; i++)
         {
-          newPostcodePositions[i-1] = postcodePositions[i];
+          if (i < shortesti)
+          {
+            newPostcodePositions[i] = postcodePositions[i];
+          }
+          if (i > shortesti)
+          {
+            newPostcodePositions[i - 1] = postcodePositions[i];
+          }
         }
+        postcodePositions = newPostcodePositions;
       }
-      postcodePositions = newPostcodePositions;
+      //grab last postcode
+      shortestRoute[shortestRoute.Length - 1] = postcodePositions[1];
+      for (int i = 1; i < shortestRoute.Length; i++)
+      {
+        //Debug.WriteLine(shortestRoute[i].Postcode);
+        if (i != shortestRoute.Length - 1) Route += shortestRoute[i].Postcode + "\r\n";
+        if (i == shortestRoute.Length - 1) Route += shortestRoute[i].Postcode;
+      }
+
+      MessagingCenter.Send(new MessagingMarker(), "RouteIt", shortestRoute.ToList());
     }
-    //grab last postcode
-    shortestRoute[shortestRoute.Length-1] = postcodePositions[1];
-    for (int i=1; i < shortestRoute.Length; i++)
+    else
     {
-      //Debug.WriteLine(shortestRoute[i].Postcode);
-      if (i != shortestRoute.Length -1) Route += shortestRoute[i].Postcode + "\r\n";
-      if (i == shortestRoute.Length -1) Route += shortestRoute[i].Postcode;
+      FindRouteLabel = "Find Route";
+      clearRoute = false;
+
+      //clear the route list
+      Route = "";
+      MessagingCenter.Send(new MessagingMarker(), "ClearRoute", shortestRoute.ToList());
     }
-    
   }
 
 

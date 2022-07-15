@@ -76,7 +76,7 @@
               Margin="0,20,0,0">
 
           <Button Grid.Column="0"
-                    Text="Map Items" 
+                    Text="{Binding MapItemsLabel}" 
                     TextColor="White"
                     BackgroundColor="#696969"
                     WidthRequest="120"
@@ -86,7 +86,7 @@
 
           <Button Grid.Column="1"
                       IsEnabled="{Binding FindRouteEnabled}"
-                      Text="Find Route" 
+                      Text="{Binding FindRouteLabel}" 
                       TextColor="White"
                       BackgroundColor="#696969"
                       WidthRequest="120"
