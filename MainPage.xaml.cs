@@ -40,20 +40,31 @@ public partial class MainPage : ContentPage
       }
     });
 
-    MessagingCenter.Subscribe<MessagingMarker, List<PostcodePosition>>(this, "PinAdded", (sender, arg) =>
+    MessagingCenter.Subscribe<MessagingMarker, List<PostcodePosition>>(this, "AddPins", (sender, arg) =>
     {
       //get min max coords for a bounding box, set max, min cooordinates to be the first one in the list
       minLat = arg[0].Latitude;
       maxLat = arg[0].Latitude;
       minLng = arg[0].Longitude;
       maxLng = arg[0].Longitude;
+
+      bool firstPin = true;
+
       foreach(PostcodePosition p in arg)
       {
         if (p.Latitude < minLat) minLat = p.Latitude;
         if (p.Latitude > maxLat) maxLat = p.Latitude;
         if (p.Longitude < minLng) minLng = p.Longitude;
         if (p.Longitude > maxLng) maxLng = p.Longitude;
-        AddPin(p, Colors.Red);
+        if (firstPin)
+        {
+          AddPin(p, Colors.Blue);
+          firstPin = false;
+        }
+        else
+        {
+          AddPin(p, Colors.Red);
+        }
       }
       var bl = SphericalMercator.FromLonLat(minLng, minLat*.99999);
       var tr = SphericalMercator.FromLonLat(maxLng, maxLat*1.00005);
@@ -141,7 +152,7 @@ public partial class MainPage : ContentPage
       Longitude = location.Longitude,
       Postcode = "Home"
     };
-    AddPin(p, Colors.Blue);
+    //AddPin(p, Colors.Blue);
 
   }
 

@@ -4,7 +4,7 @@ public partial class MainPageViewModel : ObservableObject
 {
   public MainPageViewModel()
   {
-    AddTestPostcodes();  //My home ST1 6SS 53.033809f, -2.151793f to SY6 1AX 53.051347f, -2.189165f
+    //AddTestPostcodes();  //My home ST1 6SS 53.033809f, -2.151793f to SY6 1AX 53.051347f, -2.189165f
 
     LoadItinero();  //the routing package
   }
@@ -77,6 +77,23 @@ public partial class MainPageViewModel : ObservableObject
       MessagingCenter.Send(new MessagingMarker(), "RouterDbLoaded", routerDb);
       IsBusy = false;
 
+      if (StartPostcode == null)  //no start postocde
+      {
+        StartPostcode = "Need this!!!";
+        return;
+      }
+
+      List<string> postcodes = new()
+      {
+        StartPostcode
+      };
+
+      if (Postcodes == String.Empty || Postcodes == null)
+      {
+        Postcodes = "Need these!!!";
+        return;
+      }
+
       Debug.WriteLine("Map items");
       clearMap = true;
       MapItemsLabel = "Clear Map";
@@ -84,8 +101,6 @@ public partial class MainPageViewModel : ObservableObject
       HttpClient _client = new();
       string baseURI = "https://api.postcodes.io/postcodes/";
 
-      List<string> postcodes = new();
-      postcodes.Add(StartPostcode);
       postcodes.AddRange(Postcodes.Split("\r", StringSplitOptions.None));
 
       postcodeCoordinates = new();
@@ -120,7 +135,7 @@ public partial class MainPageViewModel : ObservableObject
       FindRouteEnabled = true;
 
       //add pins by sending a message to the code behind where map is definded
-      MessagingCenter.Send(new MessagingMarker(), "PinAdded", postcodeCoordinates);
+      MessagingCenter.Send(new MessagingMarker(), "AddPins", postcodeCoordinates);
 
     }
     else
@@ -135,6 +150,8 @@ public partial class MainPageViewModel : ObservableObject
 
       //recentre map on my home pos
       MessagingCenter.Send(new MessagingMarker(), "ClearMap", postcodeCoordinates);
+
+      if (shortestRoute == null) return;
       MessagingCenter.Send(new MessagingMarker(), "ClearRoute", shortestRoute.ToList());
     }
   }
@@ -200,7 +217,9 @@ public partial class MainPageViewModel : ObservableObject
         postcodePositions = newPostcodePositions;
       }
       //grab last postcode
-      shortestRoute[shortestRoute.Length - 1] = postcodePositions[1];
+      //shortestRoute[shortestRoute.Length - 1] = postcodePositions[1];
+      shortestRoute[^1] = postcodePositions[1];
+
       for (int i = 1; i < shortestRoute.Length; i++)
       {
         //Debug.WriteLine(shortestRoute[i].Postcode);
@@ -240,7 +259,6 @@ public partial class MainPageViewModel : ObservableObject
   public double ItineroDistance(PostcodePosition pp1, PostcodePosition pp2)
   {
     // calculate a route.
-    double d = 0;
 
     // snaps the given location to the nearest routable edge.My home
     var start = router.Resolve(profile, (float) pp1.Latitude, (float) pp1.Longitude);
@@ -248,9 +266,7 @@ public partial class MainPageViewModel : ObservableObject
 
     var route = router.Calculate(profile, start, end);
 
-    d = route.TotalDistance; //(in meters)
-
-    return d;
+    return route.TotalDistance; //(in meters)
   }
 }
 
