@@ -6,5 +6,12 @@ global using System.Diagnostics;
 global using Mapsui;
 global using Mapsui.Projections;
 global using Mapsui.UI.Maui;
+global using Mapsui.Utilities;
 global using System.Text.Json;
 global using Location = Microsoft.Maui.Devices.Sensors.Location;
+global using Itinero;
+global using Itinero.Profiles;
+global using Itinero.Osm.Vehicles;
+using Vehicle = Itinero.Osm.Vehicles.Vehicle;
+
+

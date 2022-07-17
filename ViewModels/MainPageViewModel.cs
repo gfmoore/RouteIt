@@ -1,13 +1,14 @@
-﻿
-
-namespace RouteIt.ViewModels;
+﻿namespace RouteIt.ViewModels;
 
 public partial class MainPageViewModel : ObservableObject
 {
   public MainPageViewModel()
   {
-    AddTestPostcodes();
+    AddTestPostcodes();  //My home ST1 6SS 53.033809f, -2.151793f to SY6 1AX 53.051347f, -2.189165f
+
+    LoadItinero();  //the routing package
   }
+
 
   [ObservableProperty]
   private string startPostcode;
@@ -34,7 +35,9 @@ public partial class MainPageViewModel : ObservableObject
   {
     FindRouteEnabled = false;  //doesn't work
     StartPostcode = "ST1 6SS";
-    Postcodes = "ST6 1AX\r\nST6 1AS\r\nST6 1HS\r\nST6 4ER\r\nST6 1HA\r\nST6 4ER\r\nST6 7NR\r\nST6 1BW\r\nST6 7DG\r\nST6 7NE\r\nST6 7QT\r\nST6 1BD\r\nST6 1HX\r\nST6 4HR\r\nST6 7AL\r\nST6 7EL\r\nST6 7QQ\r\nST6 7DT";
+    //Postcodes = "ST6 1AX\rST6 1AS\rST6 1HS\rST6 4ER\rST6 1HA\rST6 4ER\rST6 7NR\rST6 1BW\rST6 7DG\rST6 7NE\rST6 7QT\rST6 1BD\rST6 1HX\rST6 4HR\rST6 7AL\rST6 7EL\rST6 7QQ\rST6 7DT";
+    Postcodes = "ST2 8EF\rST2 8JT\rST2 8HF\rST1 6SL\rST2 8HX\rST2 8EW";
+    //get postcodes from Postcodes
   }
 
   [ObservableProperty]
@@ -45,11 +48,35 @@ public partial class MainPageViewModel : ObservableObject
 
   List<PostcodePosition> postcodeCoordinates = null;
 
+  public RouterDb routerDb;
+  public Router router;
+  public Itinero.Profiles.Profile profile;
+
+  public void LoadItinero()
+  {
+    //Load the Itinero OSM GB database Takes about 10seconds to load
+    IsBusy = true;
+    using (var stream = new FileInfo(@"C:\Users\Gordon\source\repos\RouteIt\Resources\Raw\gb.routerdb").OpenRead())
+    {
+      routerDb = RouterDb.Deserialize(stream);
+    }
+
+    router = new(routerDb);
+    profile = Itinero.Osm.Vehicles.Vehicle.Car.Fastest();
+    IsBusy = false;
+  }
+
+
   [RelayCommand]
   public async void MapItems()
   {
     if (!clearMap)
     {
+      //??Cannot send a message from the LoadItinero function - because it is part of the constructor???
+      IsBusy = true;
+      MessagingCenter.Send(new MessagingMarker(), "RouterDbLoaded", routerDb);
+      IsBusy = false;
+
       Debug.WriteLine("Map items");
       clearMap = true;
       MapItemsLabel = "Clear Map";
@@ -59,7 +86,7 @@ public partial class MainPageViewModel : ObservableObject
 
       List<string> postcodes = new();
       postcodes.Add(StartPostcode);
-      postcodes.AddRange(Postcodes.Split("\r\n", StringSplitOptions.None));
+      postcodes.AddRange(Postcodes.Split("\r", StringSplitOptions.None));
 
       postcodeCoordinates = new();
 
@@ -100,9 +127,15 @@ public partial class MainPageViewModel : ObservableObject
     {
       MapItemsLabel = "Map Items";
       clearMap = false;
+      Postcodes = "";
+      Route = "";
+
+      FindRouteLabel = "Find Route";
+      clearRoute = false;
 
       //recentre map on my home pos
       MessagingCenter.Send(new MessagingMarker(), "ClearMap", postcodeCoordinates);
+      MessagingCenter.Send(new MessagingMarker(), "ClearRoute", shortestRoute.ToList());
     }
   }
 
@@ -123,8 +156,8 @@ public partial class MainPageViewModel : ObservableObject
 
       //ok so let's start at StartPostcode and find the distance to all Postcodes
       //convert postcodeCordinates to an array
-      double shortestDistance = 999999;
-      int shortesti = 0;
+      double shortestDistance;
+      int shortesti;
       double distance;
       //the starting array and the shortest route array
       PostcodePosition[] postcodePositions = postcodeCoordinates.ToArray();
@@ -138,7 +171,9 @@ public partial class MainPageViewModel : ObservableObject
         shortesti = 0;
         for (int i = 1; i < postcodePositions.Length; i++)
         {
-          distance = CrowFliesDistance(postcodePositions[0], postcodePositions[i]);
+          //distance = CrowFliesDistance(postcodePositions[0], postcodePositions[i]);
+          distance = ItineroDistance(postcodePositions[0], postcodePositions[i]);
+
           if (distance < shortestDistance)
           {
             shortestDistance = distance;
@@ -182,13 +217,14 @@ public partial class MainPageViewModel : ObservableObject
 
       //clear the route list
       Route = "";
+
       MessagingCenter.Send(new MessagingMarker(), "ClearRoute", shortestRoute.ToList());
     }
   }
 
 
   //Haversine formula https://www.geeksforgeeks.org/program-distance-two-points-earth/
-  public double CrowFliesDistance(PostcodePosition pp1, PostcodePosition pp2)
+  public static double CrowFliesDistance(PostcodePosition pp1, PostcodePosition pp2)
 {
     double dtor = Math.PI / 180;
     double lat1 = pp1.Latitude * dtor;
@@ -197,6 +233,22 @@ public partial class MainPageViewModel : ObservableObject
     double lng2 = pp2.Longitude * dtor;
 
     Double d = 3963.0 * Math.Acos( (Math.Sin(lat1) * Math.Sin(lat2)) + (Math.Cos(lat1) * Math.Cos(lat2) * Math.Cos(lng2 - lng1)) );
+
+    return d;
+  }
+
+  public double ItineroDistance(PostcodePosition pp1, PostcodePosition pp2)
+  {
+    // calculate a route.
+    double d = 0;
+
+    // snaps the given location to the nearest routable edge.My home
+    var start = router.Resolve(profile, (float) pp1.Latitude, (float) pp1.Longitude);
+    var end = router.Resolve(profile, (float) pp2.Latitude, (float) pp2.Longitude);
+
+    var route = router.Calculate(profile, start, end);
+
+    d = route.TotalDistance; //(in meters)
 
     return d;
   }

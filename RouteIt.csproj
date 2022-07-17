@@ -54,6 +54,8 @@
 
 	<ItemGroup>
 	  <PackageReference Include="CommunityToolkit.Mvvm" Version="8.0.0-preview4" />
+	  <PackageReference Include="Itinero" Version="1.6.0-pre036" />
+	  <PackageReference Include="Itinero.IO.Osm" Version="1.6.0-pre036" />
 	  <PackageReference Include="Mapsui.Maui" Version="4.0.0-build.3760" />
 	</ItemGroup>
 

@@ -1,9 +1,4 @@
-﻿using Mapsui.UI.Maui;
-using Mapsui.Utilities;
-using Microsoft.Maui.Devices.Sensors;
-using System.Text;
-
-namespace RouteIt;
+﻿namespace RouteIt;
 
 public partial class MainPage : ContentPage
 {
@@ -11,9 +6,16 @@ public partial class MainPage : ContentPage
 
   public Location location;
 
-  public Mapsui.UI.Maui.MapControl mapControl;
+  public MapControl mapControl;
 
   public double minLat, maxLat, minLng, maxLng;
+
+  public RouterDb routerDb;
+  public Router router;
+  public Route route;
+  public Profile profile;
+  public RouterPoint start;
+  public RouterPoint end;
 
   public MainPage(MainPageViewModel viewModel, IGeolocation geolocation)
 	{
@@ -23,7 +25,21 @@ public partial class MainPage : ContentPage
     this.geolocation = geolocation;
 
     //----------------------------------------------------------------
-    //if message to add pins received from MainPageViewModel
+
+    //pass a copy? reference? of routeDb from ViewModel where it is defined
+    MessagingCenter.Subscribe<MessagingMarker, RouterDb>(this, "RouterDbLoaded", (sender, arg) =>
+    {
+      Debug.WriteLine("Router data loaded");
+      if (routerDb == null)
+      {
+        ActIndicator.IsRunning = true;
+        routerDb = arg;
+        router = new(routerDb);
+        profile = Itinero.Osm.Vehicles.Vehicle.Car.Fastest();
+        ActIndicator.IsRunning = false;
+      }
+    });
+
     MessagingCenter.Subscribe<MessagingMarker, List<PostcodePosition>>(this, "PinAdded", (sender, arg) =>
     {
       //get min max coords for a bounding box, set max, min cooordinates to be the first one in the list
@@ -45,19 +61,20 @@ public partial class MainPage : ContentPage
 
       MRect mrect = new(bl.x, bl.y, tr.x, tr.y);
 
-      //mapViewElement.Navigator.NavigateTo(new MPoint(smc.x, smc.y), mapControl.Map.Resolutions[14]);  //0 zoomed out-19 zoomed in
       mapViewElement.Navigator.NavigateTo(mrect, ScaleMethod.Fit);  //0 zoomed out-19 zoomed in
  
     });
 
     MessagingCenter.Subscribe<MessagingMarker, List<PostcodePosition>>(this, "RouteIt", (sender, arg) =>
     {
+      Debug.WriteLine("Route it");
       DrawPolyLine(arg, Colors.Green);
     });
 
     MessagingCenter.Subscribe<MessagingMarker, List<PostcodePosition>>(this, "ClearMap", (sender, arg) =>
     {
       //Clear pins
+      Debug.WriteLine("Clear map");
       mapViewElement.Pins.Clear();
 
       //Navigate to my location
@@ -67,12 +84,13 @@ public partial class MainPage : ContentPage
 
     MessagingCenter.Subscribe<MessagingMarker, List<PostcodePosition>>(this, "ClearRoute", (sender, arg) =>
     {
+      Debug.WriteLine("Clear route");
       mapViewElement.Drawables.Clear();
     });
 
-      //----------------------------------------------------------------------
+    //----------------------------------------------------------------------
 
-      Setup();
+    Setup();
   }
 
   public async void Setup()
@@ -80,6 +98,7 @@ public partial class MainPage : ContentPage
     await GetLocation();
     DrawMap();
   }   
+
   public async Task GetLocation()
   {
     try
@@ -98,7 +117,6 @@ public partial class MainPage : ContentPage
       Debug.WriteLine($"GM: Can't get location: {e.Message}");
     }
   }
-
 
   public void DrawMap()
   {
@@ -141,28 +159,37 @@ public partial class MainPage : ContentPage
     mapViewElement.Pins.Add(myPin);
   }
 
-  public void DrawLine(double x1, double y1, double x2, double y2, Color c)
-  {
-
-  }
-
   public void DrawPolyLine(List<PostcodePosition> pp, Color c)
   {
-
     Polyline pl = new Polyline { StrokeWidth = 4, StrokeColor = c };
-    
-    foreach (PostcodePosition p in pp)
-    {
-      pl.Positions.Add(new(p.Latitude, p.Longitude));
-    }
-    //and return home
-    pl.Positions.Add(new(pp[0].Latitude, pp[0].Longitude));
 
+    for (int i = 0; i < pp.Count-1; i++)
+    {
+      start = router.Resolve(profile, (float)pp[i].Latitude, (float)pp[i].Longitude);
+      end = router.Resolve(profile, (float)pp[i+1].Latitude, (float)pp[i+1].Longitude);
+
+      route = router.Calculate(profile, start, end); 
+
+      for (int j = 0; j<route.Shape.Length; j++)
+      {
+        pl.Positions.Add(new((float)route.Shape[j].Latitude, (float)route.Shape[j].Longitude));
+      }
+    }
+    //do return home
+    start = router.Resolve(profile, (float)pp[pp.Count - 1].Latitude, (float)pp[pp.Count - 1].Longitude);
+    end = router.Resolve(profile, (float)pp[0].Latitude, (float)pp[0].Longitude);
+
+    route = router.Calculate(profile, start, end);
+    //add all the locations for that route
+    for (int j = 0; j < route.Shape.Length; j++)
+    {
+      pl.Positions.Add(new((float)route.Shape[j].Latitude, (float)route.Shape[j].Longitude));
+    }
+
+    //add polyline to mapViewElement
     mapViewElement.Drawables.Add(pl);
 
   }
-
-  //https://stackoverflow.com/questions/3852268/c-sharp-implementation-of-googles-encoded-polyline-algorithm
 
 }
 
