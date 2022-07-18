@@ -2,7 +2,7 @@
 
 public partial class MainPage : ContentPage
 {
-  IGeolocation geolocation;
+  readonly IGeolocation geolocation;
 
   public Location location;
 
@@ -66,13 +66,13 @@ public partial class MainPage : ContentPage
           AddPin(p, Colors.Red);
         }
       }
-      var bl = SphericalMercator.FromLonLat(minLng, minLat*.99999);
+      var (x, y) = SphericalMercator.FromLonLat(minLng, minLat*.99999);
       var tr = SphericalMercator.FromLonLat(maxLng, maxLat*1.00005);
       var smc = SphericalMercator.FromLonLat((minLng+maxLng)/2.0, (minLat+maxLat)/2.0);
 
-      MRect mrect = new(bl.x, bl.y, tr.x, tr.y);
+      MRect mrect = new(x, y, tr.x, tr.y);
 
-      mapViewElement.Navigator.NavigateTo(mrect, ScaleMethod.Fit);  //0 zoomed out-19 zoomed in
+      mapView.Navigator.NavigateTo(mrect, ScaleMethod.Fit);  //0 zoomed out-19 zoomed in
  
     });
 
@@ -86,17 +86,17 @@ public partial class MainPage : ContentPage
     {
       //Clear pins
       Debug.WriteLine("Clear map");
-      mapViewElement.Pins.Clear();
+      mapView.Pins.Clear();
 
       //Navigate to my location
-      var smc = SphericalMercator.FromLonLat(location.Longitude, location.Latitude);
-      mapViewElement.Navigator.NavigateTo(new MPoint(smc.x, smc.y), mapControl.Map.Resolutions[16]);  //0 zoomed out-19 zoomed in
+      var (x, y) = SphericalMercator.FromLonLat(location.Longitude, location.Latitude);
+      mapView.Navigator.NavigateTo(new MPoint(x, y), mapControl.Map.Resolutions[16]);  //0 zoomed out-19 zoomed in
     });
 
     MessagingCenter.Subscribe<MessagingMarker, List<PostcodePosition>>(this, "ClearRoute", (sender, arg) =>
     {
       Debug.WriteLine("Clear route");
-      mapViewElement.Drawables.Clear();
+      mapView.Drawables.Clear();
     });
 
     //----------------------------------------------------------------------
@@ -138,27 +138,27 @@ public partial class MainPage : ContentPage
     mapControl.Map?.Layers.Add(Mapsui.Tiling.OpenStreetMap.CreateTileLayer());
     
     //link to xaml
-    mapViewElement.Map = mapControl.Map;
+    mapView.Map = mapControl.Map;
     ActIndicator.IsRunning = false;
     
     //Navigate to my location
-    var smc = SphericalMercator.FromLonLat(location.Longitude, location.Latitude);
-    mapViewElement.Navigator.NavigateTo(new MPoint(smc.x, smc.y), mapControl.Map.Resolutions[16]);  //0 zoomed out-19 zoomed in
+    var (x, y) = SphericalMercator.FromLonLat(location.Longitude, location.Latitude);
+    mapView.Navigator.NavigateTo(new MPoint(x, y), mapControl.Map.Resolutions[16]);  //0 zoomed out-19 zoomed in
 
     //Add a home pin
-    PostcodePosition p = new()
-    {
-      Latitude = location.Latitude,
-      Longitude = location.Longitude,
-      Postcode = "Home"
-    };
+    //PostcodePosition p = new()
+    //{
+    //  Latitude = location.Latitude,
+    //  Longitude = location.Longitude,
+    //  Postcode = "Home"
+    //};
     //AddPin(p, Colors.Blue);
 
   }
 
   public void AddPin(PostcodePosition p, Color c)
   {
-    var myPin = new Pin(mapViewElement)
+    var myPin = new Pin(mapView)
     {
       Position = new Position(p.Latitude, p.Longitude),
       Type = PinType.Pin,
@@ -167,12 +167,12 @@ public partial class MainPage : ContentPage
       Scale = 0.7F,
       Color = c,
     };
-    mapViewElement.Pins.Add(myPin);
+    mapView.Pins.Add(myPin);
   }
 
   public void DrawPolyLine(List<PostcodePosition> pp, Color c)
   {
-    Polyline pl = new Polyline { StrokeWidth = 4, StrokeColor = c };
+    Polyline pl = new() { StrokeWidth = 4, StrokeColor = c };
 
     for (int i = 0; i < pp.Count-1; i++)
     {
@@ -187,7 +187,7 @@ public partial class MainPage : ContentPage
       }
     }
     //do return home
-    start = router.Resolve(profile, (float)pp[pp.Count - 1].Latitude, (float)pp[pp.Count - 1].Longitude);
+    start = router.Resolve(profile, (float)pp[^1].Latitude, (float)pp[^1].Longitude);
     end = router.Resolve(profile, (float)pp[0].Latitude, (float)pp[0].Longitude);
 
     route = router.Calculate(profile, start, end);
@@ -198,7 +198,7 @@ public partial class MainPage : ContentPage
     }
 
     //add polyline to mapViewElement
-    mapViewElement.Drawables.Add(pl);
+    mapView.Drawables.Add(pl);
 
   }
 

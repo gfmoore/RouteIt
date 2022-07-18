@@ -1,4 +1,12 @@
-﻿using SkiaSharp.Views.Maui.Controls.Hosting;
+﻿/* Program			RouteIt
+ * Description	A program for providing a route for a list of UK Postcodes
+ * Author				Gordon Moore
+ * Date					18 July 2022
+ * Copyright		For now, NO permission is granted to use this code or program, all rights reserved Gordon F Moore 18 July 2022
+ * 
+ * Versions
+ * 1.0.0.0			18 July 2022	Initial working version
+ */
 
 namespace RouteIt;
 

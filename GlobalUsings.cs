@@ -12,6 +12,6 @@ global using Location = Microsoft.Maui.Devices.Sensors.Location;
 global using Itinero;
 global using Itinero.Profiles;
 global using Itinero.Osm.Vehicles;
-using Vehicle = Itinero.Osm.Vehicles.Vehicle;
-
+global using Vehicle = Itinero.Osm.Vehicles.Vehicle;
+global using SkiaSharp.Views.Maui.Controls.Hosting;
 

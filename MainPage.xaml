@@ -114,7 +114,7 @@
             Padding="5,5,5,5"
             >
 
-        <mapsui:MapView x:Name="mapViewElement" />
+        <mapsui:MapView x:Name="mapView" />
 
     </Border>
 
