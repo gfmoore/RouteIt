@@ -17,19 +17,19 @@ public static class MauiProgram
 		var builder = MauiApp.CreateBuilder();
 		builder
 			.UseMauiApp<App>()
-      .UseSkiaSharp()
-      .ConfigureFonts(fonts =>
+			.UseSkiaSharp()
+			.ConfigureFonts(fonts =>
 			{
 				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
 				fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
 			});
 
-    //dependency injection
-    builder.Services.AddTransient<MainPage>();
-    builder.Services.AddTransient<MainPageViewModel>();
+		//dependency injection
+		builder.Services.AddTransient<MainPage>();
+		builder.Services.AddTransient<MainPageViewModel>();
 
 		builder.Services.AddSingleton<IGeolocation>(Geolocation.Default);
 
-    return builder.Build();
+		return builder.Build();
 	}
 }
