@@ -6,6 +6,7 @@
  * 
  * Versions
  * 1.0.0.0			18 July 2022	Initial working version
+ * 1.0.0.1			18 July 2022	Added some pin info and made them clickable
  */
 
 namespace RouteIt;

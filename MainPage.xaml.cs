@@ -102,13 +102,41 @@ public partial class MainPage : ContentPage
     //----------------------------------------------------------------------
 
     Setup();
+    mapView.PinClicked += OnPinClicked;
   }
+
 
   public async void Setup()
   {
     await GetLocation();
     DrawMap();
-  }   
+  }
+
+  private void OnPinClicked(object sender, PinClickedEventArgs e)
+  {
+    if (e.Pin != null)
+    {
+      if (e.NumOfTaps == 2)
+      {
+        // Hide Pin when double click
+        e.Pin.IsVisible = false;
+      }
+      if (e.NumOfTaps == 1)
+        if (e.Pin.Callout.IsVisible)
+        {
+          e.Pin.HideCallout();
+        }
+        else
+        {
+          //e.Pin.Callout.BackgroundColor = Colors.Green;
+          e.Pin.Callout.TitleFontSize = 14;
+          e.Pin.ShowCallout();
+        }
+    }
+
+    e.Handled = true;
+  }
+
 
   public async Task GetLocation()
   {
@@ -163,10 +191,15 @@ public partial class MainPage : ContentPage
       Position = new Position(p.Latitude, p.Longitude),
       Type = PinType.Pin,
       Label = p.Postcode,
-      Address = "",
+      Address = "1",
       Scale = 0.7F,
       Color = c,
     };
+    myPin.ShowCallout();
+    myPin.Callout.ArrowHeight = 10;
+    myPin.Callout.TitleFontSize = 14;
+    myPin.Callout.Color = c;
+    myPin.Callout.TitleFontColor = c;
     mapView.Pins.Add(myPin);
   }
 

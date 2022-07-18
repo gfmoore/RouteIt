@@ -4,7 +4,7 @@ public partial class MainPageViewModel : ObservableObject
 {
   public MainPageViewModel()
   {
-    //AddTestPostcodes();  //My home ST1 6SS 53.033809f, -2.151793f to SY6 1AX 53.051347f, -2.189165f
+    AddTestPostcodes();  //My home ST1 6SS 53.033809f, -2.151793f to SY6 1AX 53.051347f, -2.189165f
 
     LoadItinero();  //the routing package
   }
