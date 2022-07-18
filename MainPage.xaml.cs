@@ -42,6 +42,7 @@ public partial class MainPage : ContentPage
 
     MessagingCenter.Subscribe<MessagingMarker, List<PostcodePosition>>(this, "AddPins", (sender, arg) =>
     {
+      int routeIndex = 0;
       //get min max coords for a bounding box, set max, min cooordinates to be the first one in the list
       minLat = arg[0].Latitude;
       maxLat = arg[0].Latitude;
@@ -58,12 +59,14 @@ public partial class MainPage : ContentPage
         if (p.Longitude > maxLng) maxLng = p.Longitude;
         if (firstPin)
         {
-          AddPin(p, Colors.Blue);
+          AddPin(p, Colors.Blue, routeIndex);
+          routeIndex++;
           firstPin = false;
         }
         else
         {
-          AddPin(p, Colors.Red);
+          AddPin(p, Colors.Red, routeIndex);
+          routeIndex++;
         }
       }
       var (x, y) = SphericalMercator.FromLonLat(minLng, minLat*.99999);
@@ -184,13 +187,13 @@ public partial class MainPage : ContentPage
 
   }
 
-  public void AddPin(PostcodePosition p, Color c)
+  public void AddPin(PostcodePosition p, Color c, int routeIndex)
   {
     var myPin = new Pin(mapView)
     {
       Position = new Position(p.Latitude, p.Longitude),
       Type = PinType.Pin,
-      Label = p.Postcode,
+      Label = $"{routeIndex} {p.Postcode}",
       Address = "1",
       Scale = 0.7F,
       Color = c,
@@ -205,10 +208,17 @@ public partial class MainPage : ContentPage
 
   public void DrawPolyLine(List<PostcodePosition> pp, Color c)
   {
+    mapView.HideCallouts();
+    mapView.Pins.Clear();
+
     Polyline pl = new() { StrokeWidth = 4, StrokeColor = c };
 
     for (int i = 0; i < pp.Count-1; i++)
     {
+      //add pins again
+      if (i == 0) AddPin(pp[i], Colors.Blue, i);
+      else AddPin(pp[i], Colors.Red, i);
+
       start = router.Resolve(profile, (float)pp[i].Latitude, (float)pp[i].Longitude);
       end = router.Resolve(profile, (float)pp[i+1].Latitude, (float)pp[i+1].Longitude);
 
@@ -219,7 +229,9 @@ public partial class MainPage : ContentPage
         pl.Positions.Add(new((float)route.Shape[j].Latitude, (float)route.Shape[j].Longitude));
       }
     }
+
     //do return home
+    AddPin(pp[pp.Count - 1], Colors.Red, pp.Count - 1);
     start = router.Resolve(profile, (float)pp[^1].Latitude, (float)pp[^1].Longitude);
     end = router.Resolve(profile, (float)pp[0].Latitude, (float)pp[0].Longitude);
 
