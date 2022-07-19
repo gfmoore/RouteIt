@@ -37,6 +37,7 @@ public partial class App : MauiWinUIApplication
       appWindow.Move(new PointInt32(50,50));
 #endif
     });
+
   }
 
 	protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();

@@ -49,8 +49,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="Resources\Images\logo.svg" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <Folder Include="Pages\" />
-	  <Folder Include="Resources\Images\" />
 	</ItemGroup>
 
 	<ItemGroup>

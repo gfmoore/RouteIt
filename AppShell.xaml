@@ -4,12 +4,32 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:RouteIt"
-    Shell.FlyoutBehavior="Disabled">
+    Shell.FlyoutBehavior="Flyout">
 
+  
     <ShellContent
         Title="RouteIt"
-        
+
         ContentTemplate="{DataTemplate local:MainPage}"
         Route="MainPage" />
+
+    <Shell.TitleView>  
+      <Grid ColumnDefinitions="50, 200"
+            ColumnSpacing="15">
+        <Image Grid.Column="0"
+               Source="logo.png"
+               HorizontalOptions="Start"
+               VerticalOptions="Center" 
+               HeightRequest="40"
+               WidthRequest="40"
+               Margin="10,0,0,0"/>
+        
+        <Label Grid.Column="1"
+               Text="RouteIt"
+               TextColor="LightGreen"
+               FontSize="30" 
+               Margin="0,10,0,0"/>
+      </Grid>
+    </Shell.TitleView>
 
 </Shell>

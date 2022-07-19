@@ -66,6 +66,11 @@ public partial class MainPageViewModel : ObservableObject
     IsBusy = false;
   }
 
+  [RelayCommand]
+  public void Meatballs()
+  {
+    Debug.WriteLine("Heyupski");
+  }
 
   [RelayCommand]
   public async void MapItems()
