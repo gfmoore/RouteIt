@@ -8,6 +8,7 @@
  * 1.0.0.0			18 July 2022	Initial working version
  * 1.0.0.1			18 July 2022	Added some pin info and made them clickable
  * 1.0.0.2			18 July 2022	Added route number index to callouts
+ * 1.0.0.3			19 July 2022	Added icon and title at "toolbar" can't access meatballs/hamburger
  */
 
 namespace RouteIt;
