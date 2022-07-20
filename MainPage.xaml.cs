@@ -82,7 +82,7 @@ public partial class MainPage : ContentPage
     MessagingCenter.Subscribe<MessagingMarker, List<PostcodePosition>>(this, "RouteIt", (sender, arg) =>
     {
       Debug.WriteLine("Route it");
-      DrawPolyLine(arg, Colors.Green);
+      DrawPolyLine(arg, Colors.DarkOrchid);
     });
 
     MessagingCenter.Subscribe<MessagingMarker, List<PostcodePosition>>(this, "ClearMap", (sender, arg) =>

@@ -9,7 +9,9 @@
  * 1.0.0.1			18 July 2022	Added some pin info and made them clickable
  * 1.0.0.2			18 July 2022	Added route number index to callouts
  * 1.0.0.3			19 July 2022	Added icon and title at "toolbar" can't access meatballs/hamburger
+ * 1.0.0.4			Can't recall
  * 1.0.0.5			20 July 2022	Tidied up display of postcodes
+ * 1.0.0.6		  20 July 2022	Made postcodes list slightly wider and changed polyline colour	
  * */
 
 namespace RouteIt;

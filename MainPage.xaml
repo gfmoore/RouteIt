@@ -8,7 +8,7 @@
              x:Class="RouteIt.MainPage"
              >
 
-  <Grid ColumnDefinitions="360, *"
+  <Grid ColumnDefinitions="365, *"
         ColumnSpacing="0">
 
     <Border Grid.Column="0"
@@ -16,7 +16,7 @@
             StrokeThickness="2"
             StrokeShape="RoundRectangle 10,10,10,10"
             Background="Black"
-            Margin="10,15,10,5"
+            Margin="5,15,5,5"
             Padding="5,5,5,5">
 
       <Grid RowDefinitions="40, 580, 30, 10">
@@ -52,13 +52,13 @@
             Margin="10,5,10,5"
             Padding="1,5,5,5">
 
-          <Grid ColumnDefinitions="125, *"
+          <Grid ColumnDefinitions="135, *"
                 ColumnSpacing="0" >
             
             <Editor Grid.Column="0"
                     Text="{Binding Postcodes}"
                     TextTransform="Uppercase"
-                    Placeholder="Enter postcodes"
+                    Placeholder="Add postcodes"
                     FontFamily="Courier New"
                     FontSize="19"
                     VerticalTextAlignment="Start"
