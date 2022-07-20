@@ -8,8 +8,8 @@
              x:Class="RouteIt.MainPage"
              >
 
-  <Grid ColumnDefinitions="320, *"
-        ColumnSpacing="5">
+  <Grid ColumnDefinitions="360, *"
+        ColumnSpacing="0">
 
     <Border Grid.Column="0"
             Stroke="Green"
@@ -35,6 +35,7 @@
 
           <Entry Grid.Column="1" 
                  Text="{Binding StartPostcode}"
+                 TextTransform="Uppercase"
                  Placeholder="Start postcode"
                  FontSize="20"
                  TextColor="White"
@@ -49,24 +50,29 @@
             StrokeShape="RoundRectangle 10,10,10,10"
             Background="Black"
             Margin="10,5,10,5"
-            Padding="5,5,5,5">
+            Padding="1,5,5,5">
 
-          <Grid ColumnDefinitions="*, *"
-                ColumnSpacing="2" >
+          <Grid ColumnDefinitions="125, *"
+                ColumnSpacing="0" >
             
             <Editor Grid.Column="0"
                     Text="{Binding Postcodes}"
+                    TextTransform="Uppercase"
                     Placeholder="Enter postcodes"
-                    FontSize="20"
+                    FontFamily="Courier New"
+                    FontSize="19"
                     VerticalTextAlignment="Start"
                     TextColor="DeepSkyBlue"/>
             
             <Editor Grid.Column="1"
                     Text="{Binding Route}"
+                    TextTransform="Uppercase"
+                    FontFamily="Courier New"
                     Placeholder="Route"
-                    FontSize="20"
+                    FontSize="19"
                     VerticalTextAlignment="Start"
-                    TextColor="#98ff98" />
+                    TextColor="#98ff98" 
+                    Margin="5,0,0,0"/>
           </Grid>
         </Border>
 

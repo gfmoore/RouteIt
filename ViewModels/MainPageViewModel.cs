@@ -4,7 +4,7 @@ public partial class MainPageViewModel : ObservableObject
 {
   public MainPageViewModel()
   {
-    AddTestPostcodes();  //My home ST1 6SS 53.033809f, -2.151793f to SY6 1AX 53.051347f, -2.189165f
+    //AddTestPostcodes();  //My home ST1 6SS 53.033809f, -2.151793f to SY6 1AX 53.051347f, -2.189165f
 
     LoadItinero();  //the routing package
   }
@@ -107,6 +107,15 @@ public partial class MainPageViewModel : ObservableObject
       string baseURI = "https://api.postcodes.io/postcodes/";
 
       postcodes.AddRange(Postcodes.Split("\r", StringSplitOptions.None));
+      // If a blank line added at end of list then remove it from array
+      for (int i = postcodes.Count - 1; i >= 0; i--)
+      {
+        if (postcodes[i] == "" || postcodes[i] == String.Empty)
+        {
+          postcodes.RemoveAt(i);
+        }
+      }
+
 
       postcodeCoordinates = new();
 
@@ -228,8 +237,16 @@ public partial class MainPageViewModel : ObservableObject
       for (int i = 1; i < shortestRoute.Length; i++)
       {
         //Debug.WriteLine(shortestRoute[i].Postcode);
-        if (i != shortestRoute.Length - 1) Route += shortestRoute[i].Postcode + "\r\n";
-        if (i == shortestRoute.Length - 1) Route += shortestRoute[i].Postcode;
+        if (i != shortestRoute.Length - 1)
+        {
+          if (i < 10) Route += $"{i}  {shortestRoute[i].Postcode} \r";
+          else        Route += $"{i} {shortestRoute[i].Postcode} \r";
+        }
+        if (i == shortestRoute.Length - 1)
+        {
+          if (i < 10) Route += $"{i}  {shortestRoute[i].Postcode}";
+          else        Route += $"{i} {shortestRoute[i].Postcode}";
+        }
       }
 
       MessagingCenter.Send(new MessagingMarker(), "RouteIt", shortestRoute.ToList());
