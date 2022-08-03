@@ -5,10 +5,14 @@ public partial class MainPageViewModel : ObservableObject
   public MainPageViewModel()
   {
     //AddTestPostcodes();  //My home ST1 6SS 53.033809f, -2.151793f to SY6 1AX 53.051347f, -2.189165f
+    //lad saved start postcode
+    StartPostcode = Preferences.Get("StartPostcode", "");
 
     LoadItinero();  //the routing package
   }
 
+  public Itinero.RouterPoint start;
+  public Itinero.RouterPoint end;
 
   [ObservableProperty]
   private string startPostcode;
@@ -34,7 +38,6 @@ public partial class MainPageViewModel : ObservableObject
   public void AddTestPostcodes()
   {
     FindRouteEnabled = false;  //doesn't work
-    StartPostcode = "ST1 6SS";
     //Postcodes = "ST6 1AX\rST6 1AS\rST6 1HS\rST6 4ER\rST6 1HA\rST6 4ER\rST6 7NR\rST6 1BW\rST6 7DG\rST6 7NE\rST6 7QT\rST6 1BD\rST6 1HX\rST6 4HR\rST6 7AL\rST6 7EL\rST6 7QQ\rST6 7DT";
     Postcodes = "ST2 8EF\rST2 8JT\rST2 8HF\rST1 6SL\rST2 8HX\rST2 8EW";
     //get postcodes from Postcodes
@@ -52,11 +55,19 @@ public partial class MainPageViewModel : ObservableObject
   public Router router;
   public Itinero.Profiles.Profile profile;
 
-  public void LoadItinero()
+  public async void LoadItinero()
   {
     //Load the Itinero OSM GB database Takes about 10seconds to load
     IsBusy = true;
-    using (var stream = new FileInfo(@"C:\Users\Gordon\source\repos\RouteIt\Resources\Raw\gb.routerdb").OpenRead())
+    //using (var stream = new FileInfo(@"C:\Users\Gordon\source\repos\RouteIt\Resources\Raw\gb.routerdb").OpenRead())
+    //{
+    //  routerDb = RouterDb.Deserialize(stream);
+    //}
+
+
+    var stream = await FileSystem.OpenAppPackageFileAsync("gb.routerdb");
+
+    if (stream != null)
     {
       routerDb = RouterDb.Deserialize(stream);
     }
@@ -87,6 +98,8 @@ public partial class MainPageViewModel : ObservableObject
         StartPostcode = "Need this!!!";
         return;
       }
+      //Save start postcode
+      Preferences.Set("StartPostcode", StartPostcode);
 
       List<string> postcodes = new()
       {
@@ -278,13 +291,30 @@ public partial class MainPageViewModel : ObservableObject
     return d;
   }
 
+
   public double ItineroDistance(PostcodePosition pp1, PostcodePosition pp2)
   {
     // calculate a route.
 
-    // snaps the given location to the nearest routable edge.My home
-    var start = router.Resolve(profile, (float) pp1.Latitude, (float) pp1.Longitude);
-    var end = router.Resolve(profile, (float) pp2.Latitude, (float) pp2.Longitude);
+    // snaps the given location to the nearest routable edge.
+    try
+    {
+      //var start = router.Resolve(profile, (float) pp1.Latitude, (float) pp1.Longitude);
+      start = router.Resolve(profile, (float) pp1.Latitude, (float) pp1.Longitude);
+    }
+    catch (Exception e)
+    {
+      Debug.WriteLine($"RouteIt Exception: {e.Message}");
+    }
+    try
+    {
+      //var end = router.Resolve(profile, (float) pp2.Latitude, (float) pp2.Longitude);
+      end = router.Resolve(profile, (float) pp2.Latitude, (float) pp2.Longitude);
+    }
+    catch (Exception e)
+    {
+      Debug.WriteLine($"RouteIt Exception: {e.Message}");
+    }
 
     var route = router.Calculate(profile, start, end);
 

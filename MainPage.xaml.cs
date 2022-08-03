@@ -219,8 +219,22 @@ public partial class MainPage : ContentPage
       if (i == 0) AddPin(pp[i], Colors.Blue, i);
       else AddPin(pp[i], Colors.Red, i);
 
-      start = router.Resolve(profile, (float)pp[i].Latitude, (float)pp[i].Longitude);
-      end = router.Resolve(profile, (float)pp[i+1].Latitude, (float)pp[i+1].Longitude);
+      try
+      {
+        start = router.Resolve(profile, (float)pp[i].Latitude, (float)pp[i].Longitude);
+      }
+      catch (Exception e)
+      {
+        Debug.WriteLine($"RouteIt Exception: {e.Message}");
+      }
+      try 
+      { 
+        end = router.Resolve(profile, (float)pp[i+1].Latitude, (float)pp[i+1].Longitude);
+      }
+      catch (Exception e)
+      {
+        Debug.WriteLine($"RouteIt Exception: {e.Message}");
+      }
 
       route = router.Calculate(profile, start, end); 
 
@@ -232,8 +246,22 @@ public partial class MainPage : ContentPage
 
     //do return home
     AddPin(pp[pp.Count - 1], Colors.Red, pp.Count - 1);
-    start = router.Resolve(profile, (float)pp[^1].Latitude, (float)pp[^1].Longitude);
-    end = router.Resolve(profile, (float)pp[0].Latitude, (float)pp[0].Longitude);
+    try
+    {
+      start = router.Resolve(profile, (float)pp[^1].Latitude, (float)pp[^1].Longitude);
+    }
+    catch (Exception e)
+    {
+      Debug.WriteLine($"RouteIt Exception: {e.Message}");
+    }
+    try
+    {
+      end = router.Resolve(profile, (float)pp[0].Latitude, (float)pp[0].Longitude);
+    }
+    catch (Exception e)
+    {
+      Debug.WriteLine($"RouteIt Exception: {e.Message}");
+    }
 
     route = router.Calculate(profile, start, end);
     //add all the locations for that route
